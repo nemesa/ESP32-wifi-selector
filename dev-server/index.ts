@@ -20,6 +20,14 @@ app.get('/', (req, res) => {
     res.send(Buffer.from(indexHtmlContent))
 })
 
+
+app.get('/ko.js', (req, res) => {
+    console.log(`${req.method} ${req.url}`)
+    const indexHtmlContent = fs.readFileSync('ko.js', 'utf8')
+    res.set('Content-Type', 'text/javascript; charset=UTF-8')
+    res.send(Buffer.from(indexHtmlContent))
+})
+
 app.get('/scan-wifi', (req, res) => {
     (req as any).socket = null
     console.log(`${req.method} ${req.url}`)
@@ -29,10 +37,23 @@ app.get('/scan-wifi', (req, res) => {
             { "SSID": "Rem-IOT", "RSSI": -68, "EncryptionType": "WPA2/PSK" },
             { "SSID": "Telekom-992531", "RSSI": -78, "EncryptionType": "WPA2/PSK" },
             { "SSID": "Telekom-fb562f", "RSSI": -83, "EncryptionType": "Unknown" },
-            { "SSID": "Telekom-fb562f", "RSSI": -83, "EncryptionType": "None" },            
+            { "SSID": "Telekom-fb562f", "RSSI": -83, "EncryptionType": "None" },
             { "SSID": "Rem-IOT", "RSSI": -85, "EncryptionType": "WPA2/PSK" },
             { "SSID": "Rem-Guest", "RSSI": -86, "EncryptionType": "WPA2/PSK" }
         ]
+    }
+
+    res.json(response)
+})
+
+
+app.post('/connect-wifi', (req, res) => {
+    (req as any).socket = null
+    console.log(`${req.method} ${req.url}`)
+
+    console.log(JSON.stringify(req.body, null, 2))
+    const response = {
+        "ok": true
     }
 
     res.json(response)
