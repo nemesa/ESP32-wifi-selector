@@ -1,6 +1,7 @@
 import express, { Express } from 'express'
 import bodyParser from 'body-parser'
 import fs from 'fs'
+import build from './build'
 
 const app: Express = express()
 
@@ -15,9 +16,9 @@ app.use(express.json())
 
 app.get('/', (req, res) => {
     console.log(`${req.method} ${req.url}`)
-    const indexHtmlContent = fs.readFileSync('index.html', 'utf8')
+    
     res.set('Content-Type', 'text/html')
-    res.send(Buffer.from(indexHtmlContent))
+    res.send(Buffer.from(build()))
 })
 
 

@@ -4,7 +4,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon ./index.ts",
-    "updateESP32Files": "cp ./index.html ../PlatformIO/ESP32_APP/data/index.html"
+    "build": "ts-node ./build-disc.ts",
+    "copy-disc-to-esp32-app": "cp ./disc/index.html ../PlatformIO/ESP32_APP/data/index.html",
+    "updateESP32Files": "npm run build && npm run copy-disc-to-esp32-app"
   },
   "author": "",
   "license": "ISC",
