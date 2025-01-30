@@ -1,8 +1,7 @@
-#include <DNSServer.h>
-#include <WiFi.h>
-#include <AsyncTCP.h>
-#include <ArduinoJson.h>
 
+#include <Arduino.h>
+#include <WiFi.h>
+#include "SPIFFS.h"
 #include "serverSetup.h"
 
 
@@ -14,10 +13,14 @@ IPAddress local_ip(192, 168, 4, 1);
 IPAddress gateway(192, 168, 4, 1);
 IPAddress subnet(255, 255, 255, 0);
 
-
 void setup() {
   Serial.begin(115200);
-  // Connect to WiFi network
+  if(!SPIFFS.begin(true)){
+    Serial.println("An Error has occurred while mounting SPIFFS");
+    return;
+  }
+
+  // Connect to WiFi network  
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAP(ap_ssid);
   WiFi.softAPConfig(local_ip, gateway, subnet);
@@ -33,7 +36,5 @@ void setup() {
 }
 
 void loop() {
-  //scanWiFiNetworks();
-  delay(5000);
-  
+  // put your main code here, to run repeatedly:
 }

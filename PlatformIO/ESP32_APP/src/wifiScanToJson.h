@@ -1,4 +1,6 @@
 
+#include <ArduinoJson.h>
+
 const int maxNetworks = 50;  // Adjust this value based on your needs
 
 
