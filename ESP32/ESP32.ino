@@ -16,7 +16,7 @@ IPAddress subnet(255, 255, 255, 0);
 
 
 void setup() {
-  Serial.begin(19200);
+  Serial.begin(115200);
   // Connect to WiFi network
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAP(ap_ssid);
