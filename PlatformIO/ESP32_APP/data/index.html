@@ -7,6 +7,10 @@
     <script src="/ko.js"></script>
     <script type="text/javascript">
 
+        async function dealay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
         function transformWifiScanResultToViewModel(response, onConnectCallback) {
             if (response && response.networks && response.networks.length > 0) {
 
@@ -31,9 +35,34 @@
             constructor() {
 
             }
+            async scanWifi() {
+                const response = await this.scanWifiNetworks();
+                console.log('scanWifi', response);
+                if (response == "OK") {
+                    let hasResult = false;
+                    while (!hasResult) {
+                        const results = await this.scanWifiNetworkResults()
+                        if (results && results.networks && results.networks.length > 0) {
+                            hasResult = true;
+                            return results;
+                        }
+                        await dealay(1000);
+                    }
+                }
+            }
 
             async scanWifiNetworks() {
                 const response = await fetch('/scan-wifi', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                return response.text();
+            }
+
+            async scanWifiNetworkResults() {
+                const response = await fetch('/scan-wifi-result', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
@@ -88,7 +117,7 @@
                     this.lastScanResults.removeAll();
                     this.scanWifiNetworksButtonDisable(true);
                     this.isTryToConnectToWifi(false);
-                    this.ajaxHandler.scanWifiNetworks().then((response) => {
+                    this.ajaxHandler.scanWifi().then((response) => {
                         this.lastScanResults(transformWifiScanResultToViewModel(response, (ssid, encryptionType) => {
                             this.onConnectCallback(ssid, encryptionType);
                         }));
@@ -176,6 +205,9 @@
 </head>
 
 <body onload="init()">
+    <div>
+        v1.1.1
+    </div>
     <div id="main-app" style="display: none;">
         <div>
             <button

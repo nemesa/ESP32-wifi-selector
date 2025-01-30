@@ -1,7 +1,7 @@
-
 #include <Arduino.h>
 #include <WiFi.h>
 #include "SPIFFS.h"
+#include "wifiScanToJson.h"
 #include "serverSetup.h"
 
 
@@ -12,6 +12,8 @@ const char *ap_ssid = "ESP32 192.168.4.1";
 IPAddress local_ip(192, 168, 4, 1);
 IPAddress gateway(192, 168, 4, 1);
 IPAddress subnet(255, 255, 255, 0);
+
+
 
 void setup() {
   Serial.begin(115200);
@@ -36,5 +38,6 @@ void setup() {
 }
 
 void loop() {
+  wifiScanLoop();
   // put your main code here, to run repeatedly:
 }

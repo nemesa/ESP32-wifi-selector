@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon ./index.ts"
+    "dev": "nodemon ./index.ts",
+    "updateESP32Files": "cp ./index.html ../PlatformIO/ESP32_APP/data/index.html"
   },
   "author": "",
   "license": "ISC",

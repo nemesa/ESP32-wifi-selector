@@ -31,6 +31,13 @@ app.get('/ko.js', (req, res) => {
 app.get('/scan-wifi', (req, res) => {
     (req as any).socket = null
     console.log(`${req.method} ${req.url}`)
+    res.set('Content-Type', 'text/plain')    
+    res.send("OK")
+})
+
+app.get('/scan-wifi-result', (req, res) => {
+    (req as any).socket = null
+    console.log(`${req.method} ${req.url}`)
     const response = {
         "networks": [
             { "SSID": "Rem-Guest", "RSSI": -68, "EncryptionType": "WPA2/PSK" },
