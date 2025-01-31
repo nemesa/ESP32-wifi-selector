@@ -42,14 +42,14 @@ void scanWiFiNetworks()
   // Start scanning
   int n = WiFi.scanNetworks();
   wifiScanDoc.clear();
-
+  
   // Create a JSON array to hold network information
-  JsonArray networkArray = wifiScanDoc.createNestedArray("networks");
+  JsonArray networkArray = wifiScanDoc["networks"].to<JsonArray>();
 
   // If networks are found, process them
   if (n == 0)
   {
-    JsonObject obj = networkArray.createNestedObject();
+    JsonObject obj = networkArray.add<JsonObject>();
     obj["SSID"] = "No networks found";
     obj["RSSI"] = "N/A";
     obj["EncryptionType"] = "N/A";
@@ -58,7 +58,7 @@ void scanWiFiNetworks()
   {
     for (int i = 0; i < n && i < maxNetworks; i++)
     {
-      JsonObject obj = networkArray.createNestedObject();
+      JsonObject obj = networkArray.add<JsonObject>();
       obj["SSID"] = WiFi.SSID(i);                                        // SSID of the network
       obj["RSSI"] = WiFi.RSSI(i);                                        // Signal strength
       obj["EncryptionType"] = getEncryptionType(WiFi.encryptionType(i)); // Encryption type

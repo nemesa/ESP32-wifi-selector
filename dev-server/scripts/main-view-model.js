@@ -1,59 +1,31 @@
 class MainViewModel {
     constructor() {
+        
         this.ajaxHandler = new AjaxHandler();
-        this.scanWifiNetworksButtonDisable = ko.observable(false);
-        this.isTryToConnectToWifi = ko.observable(false);
-        this.lastScanResults = ko.observableArray([]);
 
-        this.transformWifiScanResultToViewModel = function (response, onConnectCallback) {
-            if (response && response.networks && response.networks.length > 0) {
-
-                const resultLookup = {}
-                response.networks.forEach(network => {
-                    const key = network.SSID + "_" + network.EncryptionType;
-                    if (!resultLookup[key]) {
-                        resultLookup[key] = network;
-                    } else {
-                        if (parseInt(network.RSSI) > parseInt(resultLookup[key].RSSI)) {
-                            resultLookup[key] = network;
-                        }
-                    }
-                });
-
-                return Object.values(resultLookup).map((scanResult) => new WifiNetworkListItem(scanResult, onConnectCallback));
-            }
-            return [];
-        }
-
-        this.onConnectCallback = function (ssid, encryptionType) {
-            console.log(this);
-            let password = "";
-            if (encryptionType !== "None") {
-                password = prompt("Please enter the password for " + ssid, "");
-            }
-            if (password !== null) {
-                this.isTryToConnectToWifi(true);
-                this.lastScanResults.removeAll();
-                this.ajaxHandler.connectoToNetwork(ssid, password).then((response) => {
-                    console.log(response);
-                }).finally(() => {
-                    this.isTryToConnectToWifi(false);
-                });
+        this.menu ={
+            startup: {
+                templateName: 'menu-startup',
+                viewModel: new MenuStartupViewModel()
+            },
+            connectToWifi: {
+                templateName: 'menu-connect-to-wifi',
+                viewModel: new MenuConnectToWifiViewModel(this.ajaxHandler)
+            },
+            settings: {
+                templateName: 'menu-settings',
+                viewModel: new MenuSettingsViewModel(this.ajaxHandler)
             }
         }
 
-        this.scanWifiNetworks = function () {
-            this.lastScanResults.removeAll();
-            this.scanWifiNetworksButtonDisable(true);
-            this.isTryToConnectToWifi(false);
-            this.ajaxHandler.scanWifi().then((response) => {
-                this.lastScanResults(this.transformWifiScanResultToViewModel(response, (ssid, encryptionType) => {
-                    this.onConnectCallback(ssid, encryptionType);
-                }));
-            }).finally(() => {
-                this.scanWifiNetworksButtonDisable(false);
-            });
-        };
+        this.activeMenuTemplateName = ko.observable(this.menu.startup.templateName);
+        this.activeMenuViewModel = ko.observable(this.menu.startup.viewModel);
+
+        this.setMenu = function (menuItem) {
+            this.activeMenuTemplateName('menu-empty');
+            this.activeMenuViewModel(menuItem.viewModel); //set VM first!!!
+            this.activeMenuTemplateName(menuItem.templateName);
+        }
 
     }
 

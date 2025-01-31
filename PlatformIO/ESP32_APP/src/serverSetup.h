@@ -43,5 +43,13 @@ void setupServer()
     serializeJson(wifiScanDoc, jsonOutput);
   
     request->send(200, "application/json", jsonOutput); 
-    });
+  });
+
+  server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request){
+    Serial.println("HTTP_GET /settings");
+    static char jsonOutput[1024];
+    serializeJson(settingsJson, jsonOutput);
+  
+    request->send(200, "application/json", jsonOutput); 
+  });
 }

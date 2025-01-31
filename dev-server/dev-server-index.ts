@@ -55,6 +55,19 @@ app.get('/scan-wifi-result', (req, res) => {
 })
 
 
+app.get('/settings', (req, res) => {
+    (req as any).socket = null
+    console.log(`${req.method} ${req.url}`)
+    const response = {
+        "ap_ssid": "ESP32 - 192.168.4.1",
+        "ap_password": null,
+        "connect_to_ssid": null,
+        "connect_to_password": null
+    }
+
+    res.json(response)
+})
+
 app.post('/connect-wifi', (req, res) => {
     (req as any).socket = null
     console.log(`${req.method} ${req.url}`)

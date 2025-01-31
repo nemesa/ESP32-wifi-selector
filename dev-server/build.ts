@@ -3,7 +3,7 @@ import path from 'path'
 
 export default function build(): string {
     let buildOutput = ''
-    const indexHtmlContent = fs.readFileSync('index.html', 'utf8')
+    const indexHtmlContent = fs.readFileSync('./app/index.html', 'utf8')
     buildOutput += indexHtmlContent
 
     /*SCRITS*/

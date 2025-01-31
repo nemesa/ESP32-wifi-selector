@@ -44,6 +44,16 @@ class AjaxHandler {
         return response.json();
     }
 
+    async settings() {
+        const response = await fetch('/settings', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.json();
+    }
+
     async connectoToNetwork(ssid, password) {
         const response = await fetch('/connect-wifi', {
             method: 'POST',
