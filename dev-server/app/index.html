@@ -22,6 +22,32 @@
         tr:nth-child(even) {
             background-color: #D6EEEE;
         }
+
+        .menu-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px;
+            background-color: #C5CEFF;
+        }
+
+        .app-container {
+            padding: 5px;
+            background-color: #FFDB8657;
+            width: 100%;
+            height: 100%;
+        }
+
+        .active-menu-container {
+            
+        }
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            min-height: 100%;
+        }
     </style>
     <script type="text/javascript">
         function init() {
@@ -29,19 +55,20 @@
                 document.getElementById("main-app").style.display = "block";
                 document.getElementById("ko-js-error").style.display = "none";
                 const mainViewModel = new MainViewModel();
-                ko.applyBindingsToDescendants(mainViewModel, document.getElementById("main-app"));                
+                ko.applyBindingsToDescendants(mainViewModel, document.getElementById("main-app"));
             }
         }
     </script>
 </head>
 
 <body onload="init()">
-    <div id="main-app" style="display: none;">
-        <div>
+    <div class="app-container" id="main-app" style="display: none;">
+        <div class="menu-container">
             <button data-bind="click: ()=>{setMenu(menu.connectToWifi)}">Connect To WiFi</button>
             <button data-bind="click: ()=>{setMenu(menu.settings)}">Settings</button>
         </div>
-        <div data-bind="template: { name: activeMenuTemplateName, data: activeMenuViewModel }"></div>
+        <div class="active-menu-container"
+            data-bind="template: { name: activeMenuTemplateName, data: activeMenuViewModel }"></div>
     </div>
     <div id="ko-js-error" style="display: block;">
         knockout.js is not loaded...

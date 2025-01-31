@@ -3,7 +3,7 @@ class WifiNetworkListItem {
         this.ssid = scanResult.SSID;
         this.rssi = parseInt(scanResult.RSSI);
         this.encryptionType = scanResult.EncryptionType;
-        this.onConnectClick = function () {
+        this.onConnectClick = () => {
             if (onConnectCallback) {
                 onConnectCallback(this.ssid, this.encryptionType);
             }

@@ -68,5 +68,17 @@ class AjaxHandler {
         //console.log(response);
         return response.json();
     }
+
+    async saveSettings(settings) {
+        const response = await fetch('/settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(settings)
+        });
+        //console.log(response);
+        return response.json();
+    }
 }
 

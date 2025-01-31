@@ -1,11 +1,12 @@
 class MenuConnectToWifiViewModel {
-    constructor(ajaxHandler) {        
+    constructor(ajaxHandler) {
+        self = this;
         this.ajaxHandler = ajaxHandler
         this.scanWifiNetworksButtonDisable = ko.observable(false);
         this.isTryToConnectToWifi = ko.observable(false);
         this.lastScanResults = ko.observableArray([]);
 
-        this.transformWifiScanResultToViewModel = function (response, onConnectCallback) {
+        this.transformWifiScanResultToViewModel = (response, onConnectCallback) => {
             if (response && response.networks && response.networks.length > 0) {
 
                 const resultLookup = {}
@@ -25,7 +26,7 @@ class MenuConnectToWifiViewModel {
             return [];
         }
 
-        this.onConnectCallback = function (ssid, encryptionType) {
+        this.onConnectCallback = (ssid, encryptionType) => {
             console.log(this);
             let password = "";
             if (encryptionType !== "None") {
@@ -42,17 +43,25 @@ class MenuConnectToWifiViewModel {
             }
         }
 
-        this.scanWifiNetworks = function () {
-            this.lastScanResults.removeAll();
-            this.scanWifiNetworksButtonDisable(true);
-            this.isTryToConnectToWifi(false);
-            this.ajaxHandler.scanWifi().then((response) => {
-                this.lastScanResults(this.transformWifiScanResultToViewModel(response, (ssid, encryptionType) => {
-                    this.onConnectCallback(ssid, encryptionType);
-                }));
-            }).finally(() => {
+        this.scanWifiNetworks = async () => {
+            try {
+                this.lastScanResults.removeAll();
+                this.scanWifiNetworksButtonDisable(true);
+                this.isTryToConnectToWifi(false);
+                const response = await this.ajaxHandler.scanWifi();
+                // this.lastScanResults(this.transformWifiScanResultToViewModel(response, (ssid, encryptionType) => {
+                //     this.onConnectCallback(ssid, encryptionType);
+                // }));
+
+                this.lastScanResults(this.transformWifiScanResultToViewModel(response, this.onConnectCallback));
+            }
+            catch (e) {
+                console.log(e);
+            }
+            finally {
                 this.scanWifiNetworksButtonDisable(false);
-            });
+                this.isTryToConnectToWifi(false);
+            }
         };
     }
 };

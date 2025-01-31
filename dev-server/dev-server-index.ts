@@ -8,6 +8,10 @@ const app: Express = express()
 const PORT = 1234
 
 
+const dealay = async function (ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
 
@@ -16,7 +20,7 @@ app.use(express.json())
 
 app.get('/', (req, res) => {
     console.log(`${req.method} ${req.url}`)
-    
+
     res.set('Content-Type', 'text/html')
     res.send(Buffer.from(build()))
 })
@@ -32,11 +36,11 @@ app.get('/ko.js', (req, res) => {
 app.get('/scan-wifi', (req, res) => {
     (req as any).socket = null
     console.log(`${req.method} ${req.url}`)
-    res.set('Content-Type', 'text/plain')    
+    res.set('Content-Type', 'text/plain')
     res.send("OK")
 })
 
-app.get('/scan-wifi-result', (req, res) => {
+app.get('/scan-wifi-result', async (req, res) => {
     (req as any).socket = null
     console.log(`${req.method} ${req.url}`)
     const response = {
@@ -50,7 +54,7 @@ app.get('/scan-wifi-result', (req, res) => {
             { "SSID": "Rem-Guest", "RSSI": -86, "EncryptionType": "WPA2/PSK" }
         ]
     }
-
+    await dealay(3000)
     res.json(response)
 })
 
@@ -80,6 +84,18 @@ app.post('/connect-wifi', (req, res) => {
     res.json(response)
 })
 
+
+app.post('/settings', (req, res) => {
+    (req as any).socket = null
+    console.log(`${req.method} ${req.url}`)
+
+    console.log(JSON.stringify(req.body, null, 2))
+    const response = {
+        success: true
+    }
+
+    res.json(response)
+})
 
 app.listen(PORT, () => {
     console.log(`***************************************************** `)

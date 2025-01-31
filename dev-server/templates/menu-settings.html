@@ -2,6 +2,28 @@
 <div>
     <button data-bind='click: onRefreshSettingsClicked'>Refresh</button>
 </div>
- <div data-bind="text:settingsJson">
 
+ <div>
+    <label for="ap_ssid">AP SSID:</label>
+    <input type="text" id="ap_ssid" data-bind="value: ap_ssid" />
  </div>
+
+ <div>
+    <label for="ap_password">AP Password:</label>
+    <input type="text" id="ap_password" data-bind="value: ap_password" />
+ </div>
+
+ <div>
+    <label for="connect_to_ssid">Network to connect SSID:</label>
+    <input type="text" id="connect_to_ssid" data-bind="value: connect_to_ssid" />
+ </div>
+
+
+ <div>
+    <label for="connect_to_password">Network to connect Password:</label>
+    <input type="text" id="connect_to_password" data-bind="value: connect_to_password" />
+ </div>
+
+ <div>
+    <button data-bind='click: onSaveSettingsClicked'>Save</button>
+</div>
