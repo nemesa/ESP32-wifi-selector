@@ -3,9 +3,9 @@ class WifiNetworkListItem {
         this.ssid = scanResult.SSID;
         this.rssi = parseInt(scanResult.RSSI);
         this.encryptionType = scanResult.EncryptionType;
-        this.onConnectClick = () => {
+        this.onConnectClick = async () => {
             if (onConnectCallback) {
-                onConnectCallback(this.ssid, this.encryptionType);
+                await onConnectCallback(this.ssid, this.encryptionType);
             }
         }
     }

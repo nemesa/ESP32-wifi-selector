@@ -8,8 +8,7 @@ class AjaxHandler {
     }
 
     async scanWifi() {
-        const response = await this.scanWifiNetworks();
-        console.log('scanWifi', response);
+        const response = await this.scanWifiNetworks();        
         if (response == "OK") {
             let hasResult = false;
             while (!hasResult) {
@@ -32,6 +31,18 @@ class AjaxHandler {
         });
         return response.text();
     }
+
+    async connectionInfo() {
+        const response = await fetch('/connection-info', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.json();
+    }
+
+    
 
     async scanWifiNetworkResults() {
         const response = await fetch('/scan-wifi-result', {

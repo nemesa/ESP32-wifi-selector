@@ -1,21 +1,30 @@
 <div>
-    <button data-bind='click: scanWifiNetworks, disable: scanWifiNetworksButtonDisable'>scanWifiNetworks</button>    
+    <button data-bind='click: scanWifiNetworks, disable: scanWifiNetworksButtonDisable'>scanWifiNetworks</button>
 </div>
-<div data-bind="ifnot: isTryToConnectToWifi()">
-    <table>
-        <thead>
-            <tr>
-                <th>SSID</th>
-                <th>Signal</th>
-                <th>Encryption Type</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody data-bind="foreach: lastScanResults">
-            <tr data-bind="template: { name: 'wifi-network-list-item', data: $data }"></tr>
-        </tbody>
-    </table>
+
+
+<div data-bind="if: isLoaderVisible">
+    <div class="spining-loader-container">
+        <div class="spining-loader"></div>
+    </div>    
 </div>
-<div data-bind="if: isTryToConnectToWifi()">
-    Trying to connect to wifi network...
+<div data-bind="ifnot: isLoaderVisible">
+    <div data-bind="ifnot: isTryToConnectToWifi">
+        <table>
+            <thead>
+                <tr>
+                    <th>SSID</th>
+                    <th>Signal</th>
+                    <th>Encryption Type</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: lastScanResults">
+                <tr data-bind="template: { name: 'wifi-network-list-item', data: $data }"></tr>
+            </tbody>
+        </table>
+    </div>
+    <div data-bind="if: isTryToConnectToWifi">
+        Trying to connect to wifi network...
+    </div>
 </div>

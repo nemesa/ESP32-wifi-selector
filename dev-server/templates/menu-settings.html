@@ -1,29 +1,43 @@
-<div>Setup</div>
-<div>
-    <button data-bind='click: onRefreshSettingsClicked'>Refresh</button>
+<div>Settings</div>
+<div data-bind="if: isLoaderVisible">
+   <div class="spining-loader-container">
+      <div class="spining-loader"></div>
+   </div>
 </div>
+<div data-bind="ifnot: isLoaderVisible">
+   <div>
+      <button data-bind='click: onRefreshSettingsClicked'>Refresh</button>
+   </div>
 
- <div>
-    <label for="ap_ssid">AP SSID:</label>
-    <input type="text" id="ap_ssid" data-bind="value: ap_ssid" />
- </div>
+   <div>
+      <label for="ap_ssid">AP SSID:</label>
+      <input type="text" id="ap_ssid" data-bind="value: ap_ssid" />
+   </div>
 
- <div>
-    <label for="ap_password">AP Password:</label>
-    <input type="text" id="ap_password" data-bind="value: ap_password" />
- </div>
+   <div>
+      <label for="ap_password">AP Password:</label>
+      <input id="ap_password" data-bind="value: ap_password, attr: { type: ap_password_type_attr }" />
+      <input type="checkbox" id="ap_password_visible" data-bind="checked: ap_password_visible" />
+   </div>
 
- <div>
-    <label for="connect_to_ssid">Network to connect SSID:</label>
-    <input type="text" id="connect_to_ssid" data-bind="value: connect_to_ssid" />
- </div>
+   <div>
+      <button data-bind='click: onDisconnectClicked'>Disconnect and forget Wifi</button>
+   </div>
+
+   <div>
+      <label for="connect_to_ssid">Network to connect SSID:</label>
+      <input type="text" id="connect_to_ssid" data-bind="value: connect_to_ssid" />
+   </div>
 
 
- <div>
-    <label for="connect_to_password">Network to connect Password:</label>
-    <input type="text" id="connect_to_password" data-bind="value: connect_to_password" />
- </div>
+   <div>
+      <label for="connect_to_password">Network to connect Password:</label>
+      <input id="connect_to_password"
+         data-bind="value: connect_to_password, attr: { type: connect_to_password_type_attr }" />
+      <input type="checkbox" id="connect_to_password_visible" data-bind="checked: connect_to_password_visible" />
+   </div>
 
- <div>
-    <button data-bind='click: onSaveSettingsClicked'>Save</button>
+   <div>
+      <button data-bind='click: onSaveSettingsClicked'>Save</button>
+   </div>
 </div>

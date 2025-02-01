@@ -45,6 +45,12 @@ void setupServer()
     request->send(200, "application/json", jsonOutput); 
   });
 
+  server.on("/connection-info", HTTP_GET, [](AsyncWebServerRequest *request){
+    Serial.println("HTTP_GET /connection-info");
+      
+    request->send(200, "application/json", "{\"ipAddress\":\"192.168.1.1\"}"); 
+  });
+
   server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request){
     Serial.println("HTTP_GET /settings");
     static char jsonOutput[1024];
@@ -52,4 +58,32 @@ void setupServer()
   
     request->send(200, "application/json", jsonOutput); 
   });
+
+  
+
+  server.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+    Serial.printf("onRequestBody");
+    Serial.println(request->url().c_str());
+
+    if(!index){
+      JsonDocument doc;
+      deserializeJson(doc, data);
+
+      if (request->url() == "/settings"){
+        Serial.println("HTTP_POST /settings");          
+        updateSettings(doc);
+      }
+      else if (request->url() == "/connect-wifi"){
+        Serial.println("HTTP_POST /connect-wifi");        
+        if(doc["password"]){
+          setConnectedWifiInSettings(doc["ssid"], doc["password"]);
+        }
+        else{
+          setConnectedWifiInSettings(doc["ssid"]);
+        }        
+      }
+    }
+    request->send(200); 
+  });
 }
+

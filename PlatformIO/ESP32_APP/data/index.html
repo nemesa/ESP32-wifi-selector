@@ -7,6 +7,62 @@
 <head>
 
     <script src="/ko.js"></script>
+
+    <style>
+        .spining-loader-container {
+            width: 50px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 100px;
+        }
+
+        .spining-loader {
+            width: 50px;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            border: 8px solid;
+            border-color: #000 #0000;
+            animation: spining-loader-frames 1s infinite;
+        }
+
+        @keyframes spining-loader-frames {
+            to {
+                transform: rotate(.5turn)
+            }
+        }
+
+
+
+        .bar-loader {
+            width: 45px;
+            aspect-ratio: .75;
+            --c: no-repeat linear-gradient(#000 0 0);
+            background:
+                var(--c) 0% 100%,
+                var(--c) 50% 100%,
+                var(--c) 100% 100%;
+            background-size: 20% 65%;
+            animation: bar-loader-frames 1s infinite linear;
+        }
+
+        @keyframes bar-loader-frames {
+            20% {
+                background-position: 0% 50%, 50% 100%, 100% 100%
+            }
+
+            40% {
+                background-position: 0% 0%, 50% 50%, 100% 100%
+            }
+
+            60% {
+                background-position: 0% 100%, 50% 0%, 100% 50%
+            }
+
+            80% {
+                background-position: 0% 100%, 50% 100%, 100% 0%
+            }
+        }
+    </style>
     <style>
         table {
             border-collapse: collapse;
@@ -22,14 +78,43 @@
         tr:nth-child(even) {
             background-color: #D6EEEE;
         }
+
+        .menu-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px;
+            background-color: #C5CEFF;
+        }
+
+        .app-container {
+            padding: 5px;
+            background-color: #FFDB8657;
+            width: 100%;
+
+        }
+
+        .active-menu-container {}
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            min-height: 100%;
+
+            display: flex;
+            align-items: stretch;
+        }
     </style>
+
     <script type="text/javascript">
         function init() {
             if (ko) {
                 document.getElementById("main-app").style.display = "block";
                 document.getElementById("ko-js-error").style.display = "none";
                 const mainViewModel = new MainViewModel();
-                ko.applyBindingsToDescendants(mainViewModel, document.getElementById("main-app"));                
+                ko.applyBindingsToDescendants(mainViewModel, document.getElementById("main-app"));
+                mainViewModel.afterInit();
             }
         }
     </script>
@@ -44,8 +129,7 @@ class AjaxHandler {
     }
 
     async scanWifi() {
-        const response = await this.scanWifiNetworks();
-        console.log('scanWifi', response);
+        const response = await this.scanWifiNetworks();        
         if (response == "OK") {
             let hasResult = false;
             while (!hasResult) {
@@ -68,6 +152,18 @@ class AjaxHandler {
         });
         return response.text();
     }
+
+    async connectionInfo() {
+        const response = await fetch('/connection-info', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.json();
+    }
+
+    
 
     async scanWifiNetworkResults() {
         const response = await fetch('/scan-wifi-result', {
@@ -104,38 +200,120 @@ class AjaxHandler {
         //console.log(response);
         return response.json();
     }
+
+    async saveSettings(settings) {
+        const response = await fetch('/settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(settings)
+        });
+        //console.log(response);
+        return response.json();
+    }
 }
 
 
 </script>
 <script type="text/javascript">
+class ConnectionInfoViewModel {
+    constructor(ajaxHandler) {
+
+        this.ajaxHandler = ajaxHandler
+        this.doConnectionPolling = ko.observable(false);
+
+        this.startPolling = () => {
+            console.log("start polling");
+            this.doConnectionPolling(true);
+        }
+
+        this.stopPolling = () => {
+            console.log("stop polling");
+            this.doConnectionPolling(false);
+        }
+
+        this.ipAddress = ko.observable('');
+
+        this.hasIpAddress = ko.pureComputed(() => {
+            if (this.doConnectionPolling() && this.ipAddress()) {
+                return true;
+            }
+            return false;
+        }, this);
+
+        ko.computed(() => {
+            if (this.doConnectionPolling()) {
+                this.startPolling();
+            }
+            else {
+                this.stopPolling();
+            }
+        }, this);
+
+        this.inPoll = false;
+
+        const interval = setInterval(() => {
+            const doPolling = this.doConnectionPolling();
+            if (doPolling) {
+                try {
+                    if (!this.inPoll) {
+                        this.inPoll = true;
+                        this.ajaxHandler.connectionInfo().then((response) => {
+                            this.ipAddress(response.ipAddress);                            
+                        }).catch((error) => {
+                            console.log(error);
+                        }).finally(() => {
+                            this.inPoll = false;
+                        });
+                    }
+                } catch (error) {
+                    this.inPoll = false;
+                }
+            }
+        }, 5000);
+
+        this.killTimer = () => {
+            clearInterval(interval);
+        }
+    }
+};
+</script>
+<script type="text/javascript">
 class MainViewModel {
     constructor() {
-        
-        this.ajaxHandler = new AjaxHandler();
 
-        this.menu ={
+        this.ajaxHandler = new AjaxHandler();
+        this.connectionInfo = new ConnectionInfoViewModel(this.ajaxHandler);
+
+        this.menu = {
             startup: {
                 templateName: 'menu-startup',
                 viewModel: new MenuStartupViewModel()
             },
             connectToWifi: {
                 templateName: 'menu-connect-to-wifi',
-                viewModel: new MenuConnectToWifiViewModel(this.ajaxHandler)
+                viewModel: new MenuConnectToWifiViewModel(this.ajaxHandler, this.connectionInfo)
             },
             settings: {
                 templateName: 'menu-settings',
-                viewModel: new MenuSettingsViewModel(this.ajaxHandler)
+                viewModel: new MenuSettingsViewModel(this.ajaxHandler, this.connectionInfo)
             }
         }
 
         this.activeMenuTemplateName = ko.observable(this.menu.startup.templateName);
         this.activeMenuViewModel = ko.observable(this.menu.startup.viewModel);
 
-        this.setMenu = function (menuItem) {
+        this.setMenu = (menuItem) => {
             this.activeMenuTemplateName('menu-empty');
             this.activeMenuViewModel(menuItem.viewModel); //set VM first!!!
             this.activeMenuTemplateName(menuItem.templateName);
+
+            menuItem.viewModel.afterMenuRequested();
+        }
+
+        this.afterInit = () => {
+
         }
 
     }
@@ -145,13 +323,17 @@ class MainViewModel {
 </script>
 <script type="text/javascript">
 class MenuConnectToWifiViewModel {
-    constructor(ajaxHandler) {        
+    constructor(ajaxHandler, connectionInfo) {
+        this.ajaxHandler = ajaxHandler
+        this.connectionInfo = connectionInfo;
+
         this.ajaxHandler = ajaxHandler
         this.scanWifiNetworksButtonDisable = ko.observable(false);
         this.isTryToConnectToWifi = ko.observable(false);
         this.lastScanResults = ko.observableArray([]);
+        this.isLoaderVisible = ko.observable(false);
 
-        this.transformWifiScanResultToViewModel = function (response, onConnectCallback) {
+        this.transformWifiScanResultToViewModel = (response, onConnectCallback) => {
             if (response && response.networks && response.networks.length > 0) {
 
                 const resultLookup = {}
@@ -171,8 +353,26 @@ class MenuConnectToWifiViewModel {
             return [];
         }
 
-        this.onConnectCallback = function (ssid, encryptionType) {
-            console.log(this);
+        this.scanWifiNetworks = async () => {
+            try {
+                this.isLoaderVisible(true);
+                this.lastScanResults.removeAll();
+                this.scanWifiNetworksButtonDisable(true);
+                this.isTryToConnectToWifi(false);
+                const response = await this.ajaxHandler.scanWifi();
+                this.lastScanResults(this.transformWifiScanResultToViewModel(response, this.onConnectCallback));
+            }
+            catch (e) {
+                console.log(e);
+            }
+            finally {
+                this.isLoaderVisible(false);
+                this.scanWifiNetworksButtonDisable(false);
+                this.isTryToConnectToWifi(false);
+            }
+        };
+
+        this.onConnectCallback = async (ssid, encryptionType) => {            
             let password = "";
             if (encryptionType !== "None") {
                 password = prompt("Please enter the password for " + ssid, "");
@@ -180,47 +380,104 @@ class MenuConnectToWifiViewModel {
             if (password !== null) {
                 this.isTryToConnectToWifi(true);
                 this.lastScanResults.removeAll();
-                this.ajaxHandler.connectoToNetwork(ssid, password).then((response) => {
-                    console.log(response);
-                }).finally(() => {
+
+                try{
+                    await this.ajaxHandler.connectoToNetwork(ssid, password)                    
+                    this.connectionInfo.doConnectionPolling(true);
+                }catch(e){
+
+                }
+                finally{
                     this.isTryToConnectToWifi(false);
-                });
+                }
             }
         }
 
-        this.scanWifiNetworks = function () {
-            this.lastScanResults.removeAll();
-            this.scanWifiNetworksButtonDisable(true);
-            this.isTryToConnectToWifi(false);
-            this.ajaxHandler.scanWifi().then((response) => {
-                this.lastScanResults(this.transformWifiScanResultToViewModel(response, (ssid, encryptionType) => {
-                    this.onConnectCallback(ssid, encryptionType);
-                }));
-            }).finally(() => {
-                this.scanWifiNetworksButtonDisable(false);
-            });
-        };
+        this.afterMenuRequested = () => {
+            this.scanWifiNetworks();
+        }
     }
 };
 </script>
 <script type="text/javascript">
 class MenuSettingsViewModel {
-    constructor(ajaxHandler) {        
+    constructor(ajaxHandler, connectionInfo) {
         this.ajaxHandler = ajaxHandler
-        this.settingsJson = ko.observable('');
-        this.getSettings = function () {
-            this.ajaxHandler.settings().then((response) => {
-                this.settingsJson(JSON.stringify(response, null, 2));
+        this.connectionInfo = connectionInfo;
+        this.isLoaderVisible = ko.observable(false);
+
+
+        this.ap_ssid = ko.observable('');
+        this.ap_password = ko.observable('');
+        this.connect_to_ssid = ko.observable('');
+        this.connect_to_password = ko.observable('');
+
+        this.getSettings = async () => {
+            this.isLoaderVisible(true);
+            try {
+                const response = await this.ajaxHandler.settings();
+                this.ap_ssid(response.ap_ssid);
+                this.ap_password(response.ap_password);
+                this.connect_to_ssid(response.connect_to_ssid);
+                this.connect_to_password(response.connect_to_password);
+
+                if (response.connect_to_ssid) {
+                    this.connectionInfo.doConnectionPolling(true);
+                }
+            }
+            catch (e) { }
+            finally {
+                this.isLoaderVisible(false);
+            }
+        }
+
+        this.onRefreshSettingsClicked = async () => {
+            await this.getSettings()
+        }
+
+        this.onDisconnectClicked = async () => {
+            this.connect_to_password(null);
+            this.connect_to_ssid(null);
+            await this.onSaveSettingsClicked();
+        }
+
+
+        this.onSaveSettingsClicked = async () => {
+            await this.ajaxHandler.saveSettings({
+                ap_ssid: this.ap_ssid() || null,
+                ap_password: this.ap_password() || null,
+                connect_to_ssid: this.connect_to_ssid() || null,
+                connect_to_password: this.connect_to_password() || null
             });
-        }
 
-        this.onRefreshSettingsClicked = function () {
-            this.settingsJson('');
-            this.getSettings();
-        }
+            if (this.connect_to_ssid() || null) {
+                this.connectionInfo.doConnectionPolling(true);
+            }
+            else {
+                this.connectionInfo.doConnectionPolling(false);
+            }
 
+        }
 
         this.getSettings();
+
+        this.getPasswordInputType = (isVisible) => {
+            return isVisible ? 'text' : 'password';
+        }
+
+        this.connect_to_password_visible = ko.observable(false);
+        this.connect_to_password_type_attr = ko.pureComputed(() => {
+            return this.getPasswordInputType(this.connect_to_password_visible());
+        }, this);
+
+        this.ap_password_visible = ko.observable(false);
+        this.ap_password_type_attr = ko.pureComputed(() => {
+            return this.getPasswordInputType(this.ap_password_visible());
+        }, this);
+
+        this.afterMenuRequested = () => {
+            this.getSettings();
+        }
     }
 };
 </script>
@@ -237,36 +494,61 @@ class WifiNetworkListItem {
         this.ssid = scanResult.SSID;
         this.rssi = parseInt(scanResult.RSSI);
         this.encryptionType = scanResult.EncryptionType;
-        this.onConnectClick = function () {
+        this.onConnectClick = async () => {
             if (onConnectCallback) {
-                onConnectCallback(this.ssid, this.encryptionType);
+                await onConnectCallback(this.ssid, this.encryptionType);
             }
         }
     }
 }
 </script>
 
+<script type="text/html" id="connection-indicator">
+<div style="display: inline-block;">
+    
+    <!-- ko if: hasIpAddress -->
+    Connected: &nbsp;
+    <div style="display: inline-block;" data-bind="text:ipAddress"></div>
+    <!-- /ko -->
+    <!-- ko ifnot: hasIpAddress -->
+    Connecting... &nbsp;
+    <div class="bar-loader" style="display: inline-block; width: 10px;"></div>
+    <!-- /ko -->
+
+
+
+</div>
+</script>
 <script type="text/html" id="menu-connect-to-wifi">
 <div>
-    <button data-bind='click: scanWifiNetworks, disable: scanWifiNetworksButtonDisable'>scanWifiNetworks</button>    
+    <button data-bind='click: scanWifiNetworks, disable: scanWifiNetworksButtonDisable'>scanWifiNetworks</button>
 </div>
-<div data-bind="ifnot: isTryToConnectToWifi()">
-    <table>
-        <thead>
-            <tr>
-                <th>SSID</th>
-                <th>Signal</th>
-                <th>Encryption Type</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody data-bind="foreach: lastScanResults">
-            <tr data-bind="template: { name: 'wifi-network-list-item', data: $data }"></tr>
-        </tbody>
-    </table>
+
+
+<div data-bind="if: isLoaderVisible">
+    <div class="spining-loader-container">
+        <div class="spining-loader"></div>
+    </div>    
 </div>
-<div data-bind="if: isTryToConnectToWifi()">
-    Trying to connect to wifi network...
+<div data-bind="ifnot: isLoaderVisible">
+    <div data-bind="ifnot: isTryToConnectToWifi">
+        <table>
+            <thead>
+                <tr>
+                    <th>SSID</th>
+                    <th>Signal</th>
+                    <th>Encryption Type</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: lastScanResults">
+                <tr data-bind="template: { name: 'wifi-network-list-item', data: $data }"></tr>
+            </tbody>
+        </table>
+    </div>
+    <div data-bind="if: isTryToConnectToWifi">
+        Trying to connect to wifi network...
+    </div>
 </div>
 </script>
 <script type="text/html" id="menu-empty">
@@ -274,13 +556,49 @@ class WifiNetworkListItem {
 
 </script>
 <script type="text/html" id="menu-settings">
-<div>Setup</div>
-<div>
-    <button data-bind='click: onRefreshSettingsClicked'>Refresh</button>
+<div>Settings</div>
+<div data-bind="if: isLoaderVisible">
+   <div class="spining-loader-container">
+      <div class="spining-loader"></div>
+   </div>
 </div>
- <div data-bind="text:settingsJson">
+<div data-bind="ifnot: isLoaderVisible">
+   <div>
+      <button data-bind='click: onRefreshSettingsClicked'>Refresh</button>
+   </div>
 
- </div>
+   <div>
+      <label for="ap_ssid">AP SSID:</label>
+      <input type="text" id="ap_ssid" data-bind="value: ap_ssid" />
+   </div>
+
+   <div>
+      <label for="ap_password">AP Password:</label>
+      <input id="ap_password" data-bind="value: ap_password, attr: { type: ap_password_type_attr }" />
+      <input type="checkbox" id="ap_password_visible" data-bind="checked: ap_password_visible" />
+   </div>
+
+   <div>
+      <button data-bind='click: onDisconnectClicked'>Disconnect and forget Wifi</button>
+   </div>
+
+   <div>
+      <label for="connect_to_ssid">Network to connect SSID:</label>
+      <input type="text" id="connect_to_ssid" data-bind="value: connect_to_ssid" />
+   </div>
+
+
+   <div>
+      <label for="connect_to_password">Network to connect Password:</label>
+      <input id="connect_to_password"
+         data-bind="value: connect_to_password, attr: { type: connect_to_password_type_attr }" />
+      <input type="checkbox" id="connect_to_password_visible" data-bind="checked: connect_to_password_visible" />
+   </div>
+
+   <div>
+      <button data-bind='click: onSaveSettingsClicked'>Save</button>
+   </div>
+</div>
 </script>
 <script type="text/html" id="menu-startup">
 <div>ESP 32 wifi-selector sample app</div>
@@ -320,12 +638,15 @@ class WifiNetworkListItem {
 </head>
 
 <body onload="init()">
-    <div id="main-app" style="display: none;">
-        <div>
+    <div class="app-container" id="main-app" style="display: none;">
+        <div class="menu-container">
+
             <button data-bind="click: ()=>{setMenu(menu.connectToWifi)}">Connect To WiFi</button>
+            <div data-bind="template: { name: 'connection-indicator', data: connectionInfo }"></div>
             <button data-bind="click: ()=>{setMenu(menu.settings)}">Settings</button>
         </div>
-        <div data-bind="template: { name: activeMenuTemplateName, data: activeMenuViewModel }"></div>
+        <div class="active-menu-container"
+            data-bind="template: { name: activeMenuTemplateName, data: activeMenuViewModel }"></div>
     </div>
     <div id="ko-js-error" style="display: block;">
         knockout.js is not loaded...
