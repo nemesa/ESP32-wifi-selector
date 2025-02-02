@@ -33,6 +33,13 @@ app.get('/ko.js', (req, res) => {
     res.send(Buffer.from(indexHtmlContent))
 })
 
+app.get('/toast.js', (req, res) => {
+    console.log(`${req.method} ${req.url}`)
+    const indexHtmlContent = fs.readFileSync('Toastify.js', 'utf8')
+    res.set('Content-Type', 'text/javascript; charset=UTF-8')
+    res.send(Buffer.from(indexHtmlContent))
+})
+
 app.get('/scan-wifi', (req, res) => {
     (req as any).socket = null
     console.log(`${req.method} ${req.url}`)

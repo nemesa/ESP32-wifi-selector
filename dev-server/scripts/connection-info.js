@@ -3,6 +3,7 @@ class ConnectionInfoViewModel {
 
         this.ajaxHandler = ajaxHandler
         this.doConnectionPolling = ko.observable(false);
+        this.lastStatus = ko.observable('');
 
         this.startPolling = () => {
             console.log("start polling");
@@ -41,7 +42,8 @@ class ConnectionInfoViewModel {
                     if (!this.inPoll) {
                         this.inPoll = true;
                         this.ajaxHandler.connectionInfo().then((response) => {
-                            this.ipAddress(response.ipAddress);                            
+                            this.lastStatus(JSON.stringify(response, null, 2));
+                            this.ipAddress(response.ipAddress);
                         }).catch((error) => {
                             console.log(error);
                         }).finally(() => {
