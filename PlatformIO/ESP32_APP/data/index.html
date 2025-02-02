@@ -119,6 +119,46 @@ body {
 }
 </style>
 <style>
+.my-toastify-card {
+    color: black !important;
+    background-color: white !important;
+    background: white !important;
+    border-style: solid !important;
+
+    border-top: 1px black;
+    border-left: 1px black;
+    border-right: 1px black;
+    border-bottom: 1px black;
+}
+
+.my-toastify-card.danger {
+    border-left: 5px solid #b00000 !important;
+    border-top: 1px solid #b00000 !important;
+    border-right: 1px solid #b00000 !important;
+    border-bottom: 1px solid #b00000 !important;
+}
+
+
+.my-toastify-card.success {
+    border-left: 5px solid #198603 !important;
+    border-top: 1px solid #198603 !important;
+    border-right: 1px solid #198603 !important;
+    border-bottom: 1px solid #198603 !important;
+}
+
+
+.my-toastify-card.info {
+    border-left: 5px solid #200386 !important;
+    border-top: 1px solid #200386 !important;
+    border-right: 1px solid #200386 !important;
+    border-bottom: 1px solid #200386 !important;
+}
+
+.my-toastify-card button {
+    color: black !important;
+}
+</style>
+<style>
 /*!
  * Toastify js 1.12.0
  * https://github.com/apvarun/toastify-js
@@ -309,9 +349,10 @@ class AjaxHandler {
 class ConnectionInfoViewModel {
     constructor(ajaxHandler) {
 
-        this.ajaxHandler = ajaxHandler
+        this.ajaxHandler = ajaxHandler;
         this.doConnectionPolling = ko.observable(false);
-        this.lastStatus = ko.observable('');
+
+        this.afterMenuRequested = () => { };
 
         this.startPolling = () => {
             console.log("start polling");
@@ -324,6 +365,9 @@ class ConnectionInfoViewModel {
         }
 
         this.ipAddress = ko.observable('');
+        this.rssi = ko.observable(null);
+        this.last_status = 6
+        this.status = ko.observable(6);
 
         this.hasIpAddress = ko.pureComputed(() => {
             if (this.doConnectionPolling() && this.ipAddress()) {
@@ -343,22 +387,47 @@ class ConnectionInfoViewModel {
 
         this.inPoll = false;
 
+        this.getStatusText = () => {
+            switch (this.status()) {
+                case 0: return "No Shiled";//"WL_NO_SHIELD";
+                case 1: return "Idle";//"WL_IDLE_STATUS";
+                case 2: return "No SSID avaliable";//"WL_NO_SSID_AVAIL";
+                case 3: return "Connected";//"WL_CONNECTED";
+                case 4: return "Connection Failed";//"WL_CONNECT_FAILED";
+                case 5: return "Connection Lost";//"WL_CONNECTION_LOST";
+                case 6: return "Disconnected";//"WL_DISCONNECTED";
+                default: return "UNKNOWN";
+            }
+        }
+
+        this.getInfo = () => {
+            this.ajaxHandler.connectionInfo().then((response) => {
+                this.ipAddress(response.ip);
+                this.rssi(response.rssi);
+                this.status(response.status);
+
+                if (this.last_status !== response.status && response.status !== 3 /*WL_CONNECTED*/) {
+                    toast(`Connection status: ${this.getStatusText()}`, "danger", true);
+                }
+                this.last_status = response.status;
+
+            }).catch((e) => {
+                toast_error("connection-status-pooller connectionInfo", e, true);
+            }).finally(() => {
+                this.inPoll = false;
+            });
+        }
+
         const interval = setInterval(() => {
             const doPolling = this.doConnectionPolling();
             if (doPolling) {
                 try {
                     if (!this.inPoll) {
                         this.inPoll = true;
-                        this.ajaxHandler.connectionInfo().then((response) => {
-                            this.lastStatus(JSON.stringify(response, null, 2));
-                            this.ipAddress(response.ipAddress);
-                        }).catch((error) => {
-                            console.log(error);
-                        }).finally(() => {
-                            this.inPoll = false;
-                        });
+                        this.getInfo();
                     }
                 } catch (error) {
+                    toast_error("connection-status-pooller", e, true);
                     this.inPoll = false;
                 }
             }
@@ -367,6 +436,8 @@ class ConnectionInfoViewModel {
         this.killTimer = () => {
             clearInterval(interval);
         }
+
+        this.getInfo();
     }
 };
 </script>
@@ -378,9 +449,9 @@ class MainViewModel {
         this.connectionInfo = new ConnectionInfoViewModel(this.ajaxHandler);
 
         this.menu = {
-            startup: {
-                templateName: 'menu-startup',
-                viewModel: new MenuStartupViewModel()
+            home: {
+                templateName: 'menu-home',
+                viewModel: new MenuHomeViewModel()
             },
             connectToWifi: {
                 templateName: 'menu-connect-to-wifi',
@@ -389,11 +460,16 @@ class MainViewModel {
             settings: {
                 templateName: 'menu-settings',
                 viewModel: new MenuSettingsViewModel(this.ajaxHandler, this.connectionInfo)
-            }
+            },
+            connectionInfo: {
+                templateName: 'menu-connecion-info',
+                viewModel: this.connectionInfo
+            },
         }
 
-        this.activeMenuTemplateName = ko.observable(this.menu.startup.templateName);
-        this.activeMenuViewModel = ko.observable(this.menu.startup.viewModel);
+        this.activeMenuTemplateName = ko.observable(null);
+        this.activeMenuViewModel = ko.observable(null);
+
 
         this.setMenu = (menuItem) => {
             this.activeMenuTemplateName('menu-empty');
@@ -402,6 +478,8 @@ class MainViewModel {
 
             menuItem.viewModel.afterMenuRequested();
         }
+
+        this.setMenu(this.menu.home);
 
         this.afterInit = () => {
 
@@ -454,7 +532,7 @@ class MenuConnectToWifiViewModel {
                 this.lastScanResults(this.transformWifiScanResultToViewModel(response, this.onConnectCallback));
             }
             catch (e) {
-                console.log(e);
+                toast_error("scanWifiNetworks", e);
             }
             finally {
                 this.isLoaderVisible(false);
@@ -491,6 +569,13 @@ class MenuConnectToWifiViewModel {
 };
 </script>
 <script type="text/javascript">
+class MenuHomeViewModel {
+    constructor() {
+        this.afterMenuRequested = () => { };
+    }
+};
+</script>
+<script type="text/javascript">
 class MenuSettingsViewModel {
     constructor(ajaxHandler, connectionInfo) {
         this.ajaxHandler = ajaxHandler
@@ -515,38 +600,9 @@ class MenuSettingsViewModel {
                 if (response.connect_to_ssid) {
                     this.connectionInfo.doConnectionPolling(true);
                 }
-
-                
-                Toastify({
-                    text: "Settings loaded successfully",
-                    duration: 3000,
-                    destination: "https://github.com/apvarun/toastify-js",
-                    newWindow: true,
-                    close: true,
-                    gravity: "top", // `top` or `bottom`
-                    position: "left", // `left`, `center` or `right`
-                    stopOnFocus: true, // Prevents dismissing of toast on hover
-                    style: {
-                      background: "linear-gradient(to right, #00b09b, #96c93d)",
-                    },
-                    onClick: function(){} // Callback after click
-                  }).showToast();
             }
-            catch (e) { 
-                Toastify({
-                    text: "ERROR! Failed to load settings",
-                    duration: 3000,
-                    destination: "https://github.com/apvarun/toastify-js",
-                    newWindow: true,
-                    close: true,
-                    gravity: "top", // `top` or `bottom`
-                    position: "left", // `left`, `center` or `right`
-                    stopOnFocus: true, // Prevents dismissing of toast on hover
-                    style: {
-                      background: "linear-gradient(to right, #00b09b, #96c93d)",
-                    },
-                    onClick: function(){} // Callback after click
-                  }).showToast();
+            catch (e) {
+                toast_error("getSettings", e);
             }
             finally {
                 this.isLoaderVisible(false);
@@ -604,11 +660,27 @@ class MenuSettingsViewModel {
 };
 </script>
 <script type="text/javascript">
-class MenuStartupViewModel {
-    constructor() {
 
-    }
-};
+
+toast = function (text, type, autoHide = true, hasCloseButton = true) {
+    console.log(`toast: ${text}`);
+    Toastify({
+        text,
+        duration: autoHide ? 5000 : -1,
+        newWindow: false,
+        close: hasCloseButton,
+        gravity: "top", // `top` or `bottom`
+        position: "right", // `left`, `center` or `right`
+        stopOnFocus: true, // Prevents dismissing of toast on hover                    
+        className: `my-toastify-card ${type}`,
+        onClick: function () { } // Callback after click
+    }).showToast();
+}
+
+toast_error = function (from, exception, autoHide = false) {
+    console.error(exception);
+    toast(`ERROR (at ${from})\n${exception.message || exception.toString()}`, "danger", autoHide, true);
+}
 </script>
 <script type="text/javascript">
 class WifiNetworkListItem {
@@ -627,18 +699,44 @@ class WifiNetworkListItem {
 
 <script type="text/html" id="connection-indicator">
 <div style="display: inline-block;">
-    
-    <!-- ko if: hasIpAddress -->
-    Connected: &nbsp;
-    <div style="display: inline-block;" data-bind="text:ipAddress"></div>
-    <!-- /ko -->
-    <!-- ko ifnot: hasIpAddress -->
-    Connecting... &nbsp;
-    <div class="bar-loader" style="display: inline-block; width: 10px;"></div>
-    <!-- /ko -->
+
+    <div style="display: inline-block;" data-bind="if: doConnectionPolling() && hasIpAddress()">
+        Connected: &nbsp;
+        <span style="display: inline-block;" data-bind="text:ipAddress"></span>
+    </div>
 
 
+    <div style="display: inline-block;" data-bind="if: doConnectionPolling() && !hasIpAddress()">
+        Connecting... &nbsp;
+        <div class="bar-loader" style="display: inline-block; width: 10px;"></div>
+    </div>
 
+    <div style="display: inline-block;" data-bind="ifnot: doConnectionPolling">
+        No Connection configured;
+    </div>
+
+</div>
+</script>
+<script type="text/html" id="menu-connecion-info">
+<div>
+    Connection info
+</div>
+
+
+<div>
+    IP Address: <span data-bind="text:ipAddress"></span>
+</div>
+<div>
+    Signal strength:
+    <div style="display: inline-block;" data-bind="if: rssi()!==null">
+        <div style="display: inline-block;" data-bind=" template: { name: 'wifi-network-rssi-value', data: rssi }">
+        </div> (<span data-bind="text:rssi"></span> dBm)
+    </div>
+</div>
+
+<div>
+    Status:
+    <span data-bind="text:getStatusText()"></span>
 </div>
 </script>
 <script type="text/html" id="menu-connect-to-wifi">
@@ -676,6 +774,13 @@ class WifiNetworkListItem {
 <script type="text/html" id="menu-empty">
 <div></div>
 
+</script>
+<script type="text/html" id="menu-home">
+<div>ESP 32 wifi-selector sample app</div>
+
+<div>
+    v1.1.1
+</div>
 </script>
 <script type="text/html" id="menu-settings">
 <div>Settings</div>
@@ -722,13 +827,6 @@ class WifiNetworkListItem {
    </div>
 </div>
 </script>
-<script type="text/html" id="menu-startup">
-<div>ESP 32 wifi-selector sample app</div>
-
-<div>
-    v1.1.1
-</div>
-</script>
 <script type="text/html" id="wifi-network-list-item">
 <td data-bind="text: ssid"></td>            
 <td style="width: 50px;" data-bind="template: { name: 'wifi-network-rssi-value', data: rssi }"></td>
@@ -762,17 +860,16 @@ class WifiNetworkListItem {
 <body onload="init()">
     <div class="app-container" id="main-app" style="display: none;">
         <div class="menu-container">
-
-            <button data-bind="click: ()=>{setMenu(menu.connectToWifi)}">Connect To WiFi</button>
+            <div class="menu-container">
+                <button data-bind="click: ()=>{setMenu(menu.home)}">Home</button>
+                <button data-bind="click: ()=>{setMenu(menu.connectToWifi)}">Connect To WiFi</button>
+                <button data-bind="click: ()=>{setMenu(menu.connectionInfo)}">Connection Info</button>
+            </div>           
             <div data-bind="template: { name: 'connection-indicator', data: connectionInfo }"></div>
             <button data-bind="click: ()=>{setMenu(menu.settings)}">Settings</button>
         </div>
         <div class="active-menu-container"
             data-bind="template: { name: activeMenuTemplateName, data: activeMenuViewModel }"></div>
-
-            <div data-bind="text:connectionInfo.lastStatus">
-
-            </div>
     </div>    
     <div id="ko-js-error" style="display: block;">
         knockout.js is not loaded...

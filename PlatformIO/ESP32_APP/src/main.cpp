@@ -5,6 +5,8 @@
 #include "wifiScanToJson.h"
 #include "serverSetup.h"
 
+#include "sampleDataRequest.h"
+
 void setup()
 {
   Serial.begin(115200);
@@ -31,6 +33,8 @@ void setup()
 
   Serial.println("ISO time:");
   Serial.println(getTimeServerISOTimeString());
+
+  getSampleData();
 }
 
 void loop()
