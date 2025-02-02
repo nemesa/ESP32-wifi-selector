@@ -39,7 +39,7 @@ class MenuConnectToWifiViewModel {
                 this.lastScanResults(this.transformWifiScanResultToViewModel(response, this.onConnectCallback));
             }
             catch (e) {
-                console.log(e);
+                toast_error("scanWifiNetworks", e);
             }
             finally {
                 this.isLoaderVisible(false);

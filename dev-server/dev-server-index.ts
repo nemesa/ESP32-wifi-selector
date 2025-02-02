@@ -1,4 +1,4 @@
-import express, { Express } from 'express'
+import express, { Express, response } from 'express'
 import bodyParser from 'body-parser'
 import fs from 'fs'
 import build from './build'
@@ -8,7 +8,7 @@ const app: Express = express()
 const PORT = 1234
 
 
-const dealay = async function (ms) {
+const delay = async function (ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -18,13 +18,49 @@ app.use(bodyParser.urlencoded({ extended: false }))
 // // parse application/json
 app.use(express.json())
 
+
+app.get('/server-simulation-page', (req, res) => {
+    console.log(`${req.method} ${req.url}`)
+    const simulationPageHtmlContent = fs.readFileSync('dev-simulation-index.html', 'utf8')
+    res.set('Content-Type', 'text/html; charset=UTF-8')
+    res.send(Buffer.from(simulationPageHtmlContent))
+})
+
+let simConfig = {
+    connectionInfo:
+    {
+        delay: null,
+        response: {
+            status: 3,
+            ip: "192.168.1.1",
+            rssi: -62
+        }
+    },
+    scanWifi:{
+        delay: 1000,
+    }
+
+}
+
+app.get('/sim/config', (req, res) => {
+    console.log(`${req.method} ${req.url}`)
+    res.json(simConfig)
+})
+
+app.post('/sim/config', (req, res) => {
+    console.log(`${req.method} ${req.url}`)
+    console.log(JSON.stringify(req.body, null, 2))
+    simConfig = req.body
+    res.json(simConfig)
+})
+
+
 app.get('/', (req, res) => {
     console.log(`${req.method} ${req.url}`)
 
     res.set('Content-Type', 'text/html')
     res.send(Buffer.from(build()))
 })
-
 
 app.get('/ko.js', (req, res) => {
     console.log(`${req.method} ${req.url}`)
@@ -41,14 +77,12 @@ app.get('/toast.js', (req, res) => {
 })
 
 app.get('/scan-wifi', (req, res) => {
-    (req as any).socket = null
     console.log(`${req.method} ${req.url}`)
     res.set('Content-Type', 'text/plain')
     res.send("OK")
 })
 
 app.get('/scan-wifi-result', async (req, res) => {
-    (req as any).socket = null
     console.log(`${req.method} ${req.url}`)
     const response = {
         "networks": [
@@ -61,13 +95,14 @@ app.get('/scan-wifi-result', async (req, res) => {
             { "SSID": "Rem-Guest", "RSSI": -86, "EncryptionType": "WPA2/PSK" }
         ]
     }
-    await dealay(3000)
+    if (simConfig.scanWifi.delay !== null) {
+        await delay(simConfig.scanWifi.delay)
+    }
     res.json(response)
 })
 
 
 app.post('/connect-wifi', (req, res) => {
-    (req as any).socket = null
     console.log(`${req.method} ${req.url}`)
 
     console.log(JSON.stringify(req.body, null, 2))
@@ -90,14 +125,12 @@ let settingsObj = {
 }
 
 app.get('/settings', (req, res) => {
-    (req as any).socket = null
     console.log(`${req.method} ${req.url}`)
 
 
     res.json(settingsObj)
 })
 app.post('/settings', (req, res) => {
-    (req as any).socket = null
     console.log(`${req.method} ${req.url}`)
 
     console.log(JSON.stringify(req.body, null, 2))
@@ -110,12 +143,11 @@ app.post('/settings', (req, res) => {
 })
 
 app.get('/connection-info', async (req, res) => {
-    (req as any).socket = null
     console.log(`${req.method} ${req.url}`)
-    const response = {
-        ipAddress: "192.168.1.1"
+    const response = simConfig.connectionInfo.response
+    if (simConfig.connectionInfo.delay !== null) {
+        await delay(simConfig.connectionInfo.delay)
     }
-    await dealay(7000)
     res.json(response)
 })
 
@@ -123,6 +155,8 @@ app.listen(PORT, () => {
     console.log(`***************************************************** `)
     console.log(`* dev - server running                *`)
     console.log(`* at http://localhost:${PORT}   *`)
+    console.log(`* dev - server side simulation page                *`)
+    console.log(`* at http://localhost:${PORT}/server-simulation-page   *`)
     console.log(`*****************************************************`)
 
 })

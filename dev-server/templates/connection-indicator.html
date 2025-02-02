@@ -1,14 +1,18 @@
 <div style="display: inline-block;">
-    
-    <!-- ko if: hasIpAddress -->
-    Connected: &nbsp;
-    <div style="display: inline-block;" data-bind="text:ipAddress"></div>
-    <!-- /ko -->
-    <!-- ko ifnot: hasIpAddress -->
-    Connecting... &nbsp;
-    <div class="bar-loader" style="display: inline-block; width: 10px;"></div>
-    <!-- /ko -->
+
+    <div style="display: inline-block;" data-bind="if: doConnectionPolling() && hasIpAddress()">
+        Connected: &nbsp;
+        <span style="display: inline-block;" data-bind="text:ipAddress"></span>
+    </div>
 
 
+    <div style="display: inline-block;" data-bind="if: doConnectionPolling() && !hasIpAddress()">
+        Connecting... &nbsp;
+        <div class="bar-loader" style="display: inline-block; width: 10px;"></div>
+    </div>
+
+    <div style="display: inline-block;" data-bind="ifnot: doConnectionPolling">
+        No Connection configured;
+    </div>
 
 </div>

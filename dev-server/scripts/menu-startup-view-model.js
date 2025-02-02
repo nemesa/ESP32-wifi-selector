@@ -1,5 +1,0 @@
-class MenuStartupViewModel {
-    constructor() {
-
-    }
-};

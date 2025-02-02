@@ -25,17 +25,16 @@
 <body onload="init()">
     <div class="app-container" id="main-app" style="display: none;">
         <div class="menu-container">
-
-            <button data-bind="click: ()=>{setMenu(menu.connectToWifi)}">Connect To WiFi</button>
+            <div class="menu-container">
+                <button data-bind="click: ()=>{setMenu(menu.home)}">Home</button>
+                <button data-bind="click: ()=>{setMenu(menu.connectToWifi)}">Connect To WiFi</button>
+                <button data-bind="click: ()=>{setMenu(menu.connectionInfo)}">Connection Info</button>
+            </div>           
             <div data-bind="template: { name: 'connection-indicator', data: connectionInfo }"></div>
             <button data-bind="click: ()=>{setMenu(menu.settings)}">Settings</button>
         </div>
         <div class="active-menu-container"
             data-bind="template: { name: activeMenuTemplateName, data: activeMenuViewModel }"></div>
-
-            <div data-bind="text:connectionInfo.lastStatus">
-
-            </div>
     </div>    
     <div id="ko-js-error" style="display: block;">
         knockout.js is not loaded...

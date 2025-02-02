@@ -5,9 +5,9 @@ class MainViewModel {
         this.connectionInfo = new ConnectionInfoViewModel(this.ajaxHandler);
 
         this.menu = {
-            startup: {
-                templateName: 'menu-startup',
-                viewModel: new MenuStartupViewModel()
+            home: {
+                templateName: 'menu-home',
+                viewModel: new MenuHomeViewModel()
             },
             connectToWifi: {
                 templateName: 'menu-connect-to-wifi',
@@ -16,11 +16,16 @@ class MainViewModel {
             settings: {
                 templateName: 'menu-settings',
                 viewModel: new MenuSettingsViewModel(this.ajaxHandler, this.connectionInfo)
-            }
+            },
+            connectionInfo: {
+                templateName: 'menu-connecion-info',
+                viewModel: this.connectionInfo
+            },
         }
 
-        this.activeMenuTemplateName = ko.observable(this.menu.startup.templateName);
-        this.activeMenuViewModel = ko.observable(this.menu.startup.viewModel);
+        this.activeMenuTemplateName = ko.observable(null);
+        this.activeMenuViewModel = ko.observable(null);
+
 
         this.setMenu = (menuItem) => {
             this.activeMenuTemplateName('menu-empty');
@@ -29,6 +34,8 @@ class MainViewModel {
 
             menuItem.viewModel.afterMenuRequested();
         }
+
+        this.setMenu(this.menu.home);
 
         this.afterInit = () => {
 
