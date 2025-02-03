@@ -51,7 +51,6 @@ class AjaxHandler {
                 'Content-Type': 'application/json'
             }
         });
-        //console.log(response);
         return response.json();
     }
 
@@ -76,8 +75,7 @@ class AjaxHandler {
                 password: password
             })
         });
-        //console.log(response);
-        return response.json();
+        return response.text();
     }
 
     async saveSettings(settings) {
@@ -88,7 +86,6 @@ class AjaxHandler {
             },
             body: JSON.stringify(settings)
         });
-        //console.log(response);
         return response.json();
     }
 }

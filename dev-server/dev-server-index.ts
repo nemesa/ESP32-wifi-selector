@@ -59,6 +59,9 @@ let simConfig = {
             "connect_to_password": "some password",
         }
 
+    },
+    connectWifi: {
+        delay: 3000
     }
 
 }
@@ -112,18 +115,19 @@ app.get('/scan-wifi-result', async (req, res) => {
 })
 
 
-app.post('/connect-wifi', (req, res) => {
+app.post('/connect-wifi', async (req, res) => {
     console.log(`${req.method} ${req.url}`)
 
     console.log(JSON.stringify(req.body, null, 2))
-    const response = {
-        "ok": true
-    }
-
+    
     simConfig.settings.response.connect_to_ssid = req.body.ssid
     simConfig.settings.response.connect_to_password = req.body.password || null
+    
+    if (simConfig.connectWifi.delay !== null) {
+        await delay(simConfig.connectWifi.delay)
+    }
 
-    res.json(response)
+    res.send("OK")
 })
 
 

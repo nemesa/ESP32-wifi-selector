@@ -55,6 +55,7 @@ class MenuConnectToWifiViewModel {
             }
             if (password !== null) {
                 this.isTryToConnectToWifi(true);
+                this.scanWifiNetworksButtonDisable(true);
                 this.lastScanResults.removeAll();
 
                 try {
@@ -62,10 +63,11 @@ class MenuConnectToWifiViewModel {
                     this.connectionInfo.doConnectionPolling(true);
                     menuHandler.setMenu(menuHandler.menuKeys.connectionInfo);
                 } catch (e) {
-
+                    console.error(e);
                 }
                 finally {
                     this.isTryToConnectToWifi(false);
+                    this.scanWifiNetworksButtonDisable(false);
                 }
             }
         }
