@@ -1,5 +1,9 @@
 class MenuHomeViewModel {
-    constructor() {
+    constructor(menuHandler) {
+        
+       
+
+
         this.afterMenuRequested = () => { };
     }
 };

@@ -39,3 +39,12 @@ body {
     display: flex;
     align-items: stretch;
 }
+
+.icon-container {
+    min-width: 20px;
+    min-height: 20px;
+}
+
+.icon-button-with-text{
+    height: 40px;;
+}

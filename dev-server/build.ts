@@ -11,8 +11,8 @@ export default function build(): string {
     fs.readdirSync('./styles').forEach(file => {
         const filePath = path.join('./styles', file)
         console.log('adding',filePath)
-        const styleContent = fs.readFileSync(filePath, 'utf8')
-        styles += `<style>\n${styleContent}\n</style>\n`
+        const fileContent = fs.readFileSync(filePath, 'utf8')
+        styles += `<style>\n${fileContent}\n</style>\n`
     })
     buildOutput = buildOutput.replace('</head>', `${styles}\n${'</head>'}`)
 
@@ -21,8 +21,8 @@ export default function build(): string {
     fs.readdirSync('./scripts').forEach(file => {
         const filePath = path.join('./scripts', file)
         console.log('adding',filePath)
-        const scriptContent = fs.readFileSync(filePath, 'utf8')
-        scripts += `<script type="text/javascript">\n${scriptContent}\n</script>\n`
+        const fileContent = fs.readFileSync(filePath, 'utf8')
+        scripts += `<script type="text/javascript">\n${fileContent}\n</script>\n`
     })
     buildOutput = buildOutput.replace('</head>', `${scripts}\n${'</head>'}`)
 
@@ -32,10 +32,23 @@ export default function build(): string {
         const filePath = path.join('./templates', file)
         console.log('adding',filePath)
         const templateId = path.parse(filePath).name
-        const templateContent = fs.readFileSync(filePath, 'utf8')
-        templates += `<script type="text/html" id="${templateId}">\n${templateContent}\n</script>\n`
+        const fileContent = fs.readFileSync(filePath, 'utf8')
+        templates += `<script type="text/html" id="${templateId}">\n${fileContent}\n</script>\n`
     })
     buildOutput = buildOutput.replace('</head>', `${templates}\n${'</head>'}`)
+
+
+    /*ICONS*/
+    let icons = ''
+    fs.readdirSync('./icons').forEach(file => {
+        const filePath = path.join('./icons', file)
+        console.log('adding',filePath)
+        const templateId = `icon-${path.parse(filePath).name}` 
+        const fileContent = fs.readFileSync(filePath, 'utf8')
+        icons += `<script type="text/html" id="${templateId}">\n${fileContent}\n</script>\n`
+    })
+    buildOutput = buildOutput.replace('</head>', `${icons}\n${'</head>'}`)
+
 
     return buildOutput
 

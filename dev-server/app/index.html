@@ -15,8 +15,7 @@
                 document.getElementById("main-app").style.display = "block";
                 document.getElementById("ko-js-error").style.display = "none";
                 const mainViewModel = new MainViewModel();
-                ko.applyBindingsToDescendants(mainViewModel, document.getElementById("main-app"));
-                mainViewModel.afterInit();
+                ko.applyBindingsToDescendants(mainViewModel, document.getElementById("main-app"));                
             }
         }
     </script>
@@ -25,17 +24,20 @@
 <body onload="init()">
     <div class="app-container" id="main-app" style="display: none;">
         <div class="menu-container">
-            <div class="menu-container">
-                <button data-bind="click: ()=>{setMenu(menu.home)}">Home</button>
-                <button data-bind="click: ()=>{setMenu(menu.connectToWifi)}">Connect To WiFi</button>
-                <button data-bind="click: ()=>{setMenu(menu.connectionInfo)}">Connection Info</button>
-            </div>           
+
+            <button data-bind="click: ()=>{menuHandler.setMenu(menuHandler.menuKeys.home)}">
+                <div class="icon-container" data-bind="template:{name:'icon-house-solid'}"></div>
+            </button>
+
+
             <div data-bind="template: { name: 'connection-indicator', data: connectionInfo }"></div>
-            <button data-bind="click: ()=>{setMenu(menu.settings)}">Settings</button>
+            <button data-bind="click: ()=>{menuHandler.setMenu(menuHandler.menuKeys.settings)}">
+                <div class="icon-container" data-bind="template:{name:'icon-gear-solid'}"></div>
+            </button>
         </div>
         <div class="active-menu-container"
-            data-bind="template: { name: activeMenuTemplateName, data: activeMenuViewModel }"></div>
-    </div>    
+            data-bind="template: { name: menuHandler.activeMenuTemplateName, data: menuHandler.activeMenuViewModel }"></div>
+    </div>
     <div id="ko-js-error" style="display: block;">
         knockout.js is not loaded...
     </div>

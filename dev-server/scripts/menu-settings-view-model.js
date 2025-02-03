@@ -1,9 +1,16 @@
 class MenuSettingsViewModel {
-    constructor(ajaxHandler, connectionInfo) {
+    constructor(menuHandler, ajaxHandler, connectionInfo) {
         this.ajaxHandler = ajaxHandler
         this.connectionInfo = connectionInfo;
         this.isLoaderVisible = ko.observable(false);
 
+        this.onWifiConnectionsClicked = () => {
+            menuHandler.setMenu(menuHandler.menuKeys.connectToWifi);
+        };
+
+        this.onConnectionInfoClicked = () => {
+            menuHandler.setMenu(menuHandler.menuKeys.connectionInfo);
+        };
 
         this.ap_ssid = ko.observable('');
         this.ap_password = ko.observable('');
