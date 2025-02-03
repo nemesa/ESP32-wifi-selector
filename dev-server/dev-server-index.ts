@@ -36,8 +36,29 @@ let simConfig = {
             rssi: -62
         }
     },
-    scanWifi:{
+    scanWifi: {
         delay: 1000,
+        response: {
+            "networks": [
+                { "SSID": "Rem-Guest", "RSSI": -68, "EncryptionType": "WPA2/PSK" },
+                { "SSID": "Rem-IOT", "RSSI": -68, "EncryptionType": "WPA2/PSK" },
+                { "SSID": "Telekom-992531", "RSSI": -78, "EncryptionType": "WPA2/PSK" },
+                { "SSID": "Telekom-fb562f", "RSSI": -83, "EncryptionType": "Unknown" },
+                { "SSID": "Telekom-fb562f", "RSSI": -83, "EncryptionType": "None" },
+                { "SSID": "Rem-IOT", "RSSI": -85, "EncryptionType": "WPA2/PSK" },
+                { "SSID": "Rem-Guest", "RSSI": -86, "EncryptionType": "WPA2/PSK" }
+            ]
+        }
+    },
+    settings: {
+        delay: null,
+        response: {
+            "ap_ssid": "ESP32 - 192.168.4.1",
+            "ap_password": null,
+            "connect_to_ssid": "some ssid",
+            "connect_to_password": "some password",
+        }
+
     }
 
 }
@@ -83,22 +104,11 @@ app.get('/scan-wifi', (req, res) => {
 })
 
 app.get('/scan-wifi-result', async (req, res) => {
-    console.log(`${req.method} ${req.url}`)
-    const response = {
-        "networks": [
-            { "SSID": "Rem-Guest", "RSSI": -68, "EncryptionType": "WPA2/PSK" },
-            { "SSID": "Rem-IOT", "RSSI": -68, "EncryptionType": "WPA2/PSK" },
-            { "SSID": "Telekom-992531", "RSSI": -78, "EncryptionType": "WPA2/PSK" },
-            { "SSID": "Telekom-fb562f", "RSSI": -83, "EncryptionType": "Unknown" },
-            { "SSID": "Telekom-fb562f", "RSSI": -83, "EncryptionType": "None" },
-            { "SSID": "Rem-IOT", "RSSI": -85, "EncryptionType": "WPA2/PSK" },
-            { "SSID": "Rem-Guest", "RSSI": -86, "EncryptionType": "WPA2/PSK" }
-        ]
-    }
+    console.log(`${req.method} ${req.url}`)    
     if (simConfig.scanWifi.delay !== null) {
         await delay(simConfig.scanWifi.delay)
     }
-    res.json(response)
+    res.json(simConfig.scanWifi.response)
 })
 
 
@@ -110,31 +120,26 @@ app.post('/connect-wifi', (req, res) => {
         "ok": true
     }
 
-    settingsObj.connect_to_ssid = req.body.ssid
-    settingsObj.connect_to_password = req.body.password || null
+    simConfig.settings.response.connect_to_ssid = req.body.ssid
+    simConfig.settings.response.connect_to_password = req.body.password || null
 
     res.json(response)
 })
 
 
-let settingsObj = {
-    "ap_ssid": "ESP32 - 192.168.4.1",
-    "ap_password": null,
-    "connect_to_ssid": "some ssid",
-    "connect_to_password": "some password",
-}
-
-app.get('/settings', (req, res) => {
+app.get('/settings', async (req, res) => {
     console.log(`${req.method} ${req.url}`)
 
-
-    res.json(settingsObj)
+    if (simConfig.settings.delay !== null) {
+        await delay(simConfig.settings.delay)
+    }
+    res.json(simConfig.settings.response)
 })
 app.post('/settings', (req, res) => {
     console.log(`${req.method} ${req.url}`)
 
     console.log(JSON.stringify(req.body, null, 2))
-    settingsObj = req.body
+    simConfig.settings.response = req.body
     const response = {
         success: true
     }

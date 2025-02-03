@@ -122,8 +122,16 @@ body {
     min-height: 20px;
 }
 
-.icon-button-with-text{
-    height: 40px;;
+.icon-button-with-text {
+    height: 40px;
+    min-width: 100px;
+}
+
+
+.icon-button-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>
 <style>
@@ -460,7 +468,7 @@ class MainViewModel {
 
         const menus = this.menuHandler.menuKeys;
         this.menuHandler.registerMenu(menus.home, 'menu-home', new MenuHomeViewModel(this.menuHandler));
-        this.menuHandler.registerMenu(menus.connectToWifi, 'menu-connect-to-wifi', new MenuConnectToWifiViewModel(this.ajaxHandler, this.connectionInfo));
+        this.menuHandler.registerMenu(menus.connectToWifi, 'menu-connect-to-wifi', new MenuConnectToWifiViewModel(this.menuHandler, this.ajaxHandler, this.connectionInfo));
         this.menuHandler.registerMenu(menus.settings, 'menu-settings', new MenuSettingsViewModel(this.menuHandler, this.ajaxHandler, this.connectionInfo));
         this.menuHandler.registerMenu(menus.connectionInfo, 'menu-connecion-info', this.connectionInfo);
 
@@ -472,7 +480,7 @@ class MainViewModel {
 </script>
 <script type="text/javascript">
 class MenuConnectToWifiViewModel {
-    constructor(ajaxHandler, connectionInfo) {
+    constructor(menuHandler, ajaxHandler, connectionInfo) {
         this.ajaxHandler = ajaxHandler
         this.connectionInfo = connectionInfo;
 
@@ -521,7 +529,7 @@ class MenuConnectToWifiViewModel {
             }
         };
 
-        this.onConnectCallback = async (ssid, encryptionType) => {            
+        this.onConnectCallback = async (ssid, encryptionType) => {
             let password = "";
             if (encryptionType !== "None") {
                 password = prompt("Please enter the password for " + ssid, "");
@@ -530,13 +538,14 @@ class MenuConnectToWifiViewModel {
                 this.isTryToConnectToWifi(true);
                 this.lastScanResults.removeAll();
 
-                try{
-                    await this.ajaxHandler.connectoToNetwork(ssid, password)                    
+                try {
+                    await this.ajaxHandler.connectoToNetwork(ssid, password)
                     this.connectionInfo.doConnectionPolling(true);
-                }catch(e){
+                    menuHandler.setMenu(menuHandler.menuKeys.connectionInfo);
+                } catch (e) {
 
                 }
-                finally{
+                finally {
                     this.isTryToConnectToWifi(false);
                 }
             }
@@ -639,6 +648,9 @@ class MenuSettingsViewModel {
 
                 if (response.connect_to_ssid) {
                     this.connectionInfo.doConnectionPolling(true);
+                }
+                else {
+                    menuHandler.setMenu(menuHandler.menuKeys.connectToWifi);
                 }
             }
             catch (e) {
@@ -780,15 +792,19 @@ class WifiNetworkListItem {
 </div>
 </script>
 <script type="text/html" id="menu-connect-to-wifi">
-<div>
-    <button data-bind='click: scanWifiNetworks, disable: scanWifiNetworksButtonDisable'>scanWifiNetworks</button>
+<div style="margin-left: auto;margin-right: auto;max-width: 180px;">
+    <button class="icon-button-with-text" data-bind="click: scanWifiNetworks, disable: scanWifiNetworksButtonDisable">
+        <div class="icon-button-body">
+            <div class="icon-container" data-bind="template:{name:'icon-arrows-rotate-solid'}"></div>
+            <div>&nbsp;Re-Scan WiFi Networks</div>
+        </div>
+    </button>
 </div>
-
 
 <div data-bind="if: isLoaderVisible">
     <div class="spining-loader-container">
         <div class="spining-loader"></div>
-    </div>    
+    </div>
 </div>
 <div data-bind="ifnot: isLoaderVisible">
     <div data-bind="ifnot: isTryToConnectToWifi">
@@ -834,19 +850,18 @@ class WifiNetworkListItem {
       <div>Conncetions</div>
       <div style="margin-left: 10px;">
          <button class="icon-button-with-text" data-bind="click: onWifiConnectionsClicked">
-            <div>
-               <div style="display: inline-block;" class="icon-container" data-bind="template:{name:'icon-wifi-solid'}">
+            <div class="icon-button-body">
+               <div class="icon-container" data-bind="template:{name:'icon-wifi-solid'}">
                </div>
-               <div style="display: inline-block;">Scan Wifi Networks</div>
+               <div>&nbsp;Scan Wifi Networks</div>
             </div>
          </button>
 
 
          <button class="icon-button-with-text" data-bind="click: onConnectionInfoClicked">
-            <div>
-               <div style="display: inline-block;" class="icon-container"
-                  data-bind="template:{name:'icon-network-wired-solid'}"></div>
-               <div style="display: inline-block;">Connection Info</div>
+            <div class="icon-button-body">
+               <div class="icon-container" data-bind="template:{name:'icon-network-wired-solid'}"></div>
+               <div>&nbsp;Connection Info</div>
             </div>
          </button>
       </div>
@@ -857,10 +872,9 @@ class WifiNetworkListItem {
       <div style="margin-left: 10px;">
          <div style="margin-left: auto;margin-right: auto;max-width: 100px;">
             <button class="icon-button-with-text" data-bind="click: onRefreshSettingsClicked">
-               <div>
-                  <div style="display: inline-block;" class="icon-container"
-                     data-bind="template:{name:'icon-arrows-rotate-solid'}"></div>
-                  <div style="display: inline-block;">Refresh</div>
+               <div class="icon-button-body">
+                  <div class="icon-container" data-bind="template:{name:'icon-arrows-rotate-solid'}"></div>
+                  <div>&nbsp;Refresh</div>
                </div>
             </button>
          </div>
@@ -894,10 +908,9 @@ class WifiNetworkListItem {
 
          <div style="margin-left: auto;margin-right: auto;max-width: 100px;">
             <button class="icon-button-with-text" data-bind="click: onSaveSettingsClicked">
-               <div>
-                  <div style="display: inline-block;" class="icon-container"
-                     data-bind="template:{name:'icon-floppy-disk-solid'}"></div>
-                  <div style="display: inline-block;">Save</div>
+               <div class="icon-button-body">
+                  <div class="icon-container" data-bind="template:{name:'icon-floppy-disk-solid'}"></div>
+                  <div>&nbsp;Save</div>
                </div>
             </button>
          </div>

@@ -1,5 +1,5 @@
 class MenuConnectToWifiViewModel {
-    constructor(ajaxHandler, connectionInfo) {
+    constructor(menuHandler, ajaxHandler, connectionInfo) {
         this.ajaxHandler = ajaxHandler
         this.connectionInfo = connectionInfo;
 
@@ -48,7 +48,7 @@ class MenuConnectToWifiViewModel {
             }
         };
 
-        this.onConnectCallback = async (ssid, encryptionType) => {            
+        this.onConnectCallback = async (ssid, encryptionType) => {
             let password = "";
             if (encryptionType !== "None") {
                 password = prompt("Please enter the password for " + ssid, "");
@@ -57,13 +57,14 @@ class MenuConnectToWifiViewModel {
                 this.isTryToConnectToWifi(true);
                 this.lastScanResults.removeAll();
 
-                try{
-                    await this.ajaxHandler.connectoToNetwork(ssid, password)                    
+                try {
+                    await this.ajaxHandler.connectoToNetwork(ssid, password)
                     this.connectionInfo.doConnectionPolling(true);
-                }catch(e){
+                    menuHandler.setMenu(menuHandler.menuKeys.connectionInfo);
+                } catch (e) {
 
                 }
-                finally{
+                finally {
                     this.isTryToConnectToWifi(false);
                 }
             }

@@ -45,6 +45,14 @@ body {
     min-height: 20px;
 }
 
-.icon-button-with-text{
-    height: 40px;;
+.icon-button-with-text {
+    height: 40px;
+    min-width: 100px;
+}
+
+
+.icon-button-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

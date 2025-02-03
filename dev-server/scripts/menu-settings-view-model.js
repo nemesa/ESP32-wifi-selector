@@ -29,6 +29,9 @@ class MenuSettingsViewModel {
                 if (response.connect_to_ssid) {
                     this.connectionInfo.doConnectionPolling(true);
                 }
+                else {
+                    menuHandler.setMenu(menuHandler.menuKeys.connectToWifi);
+                }
             }
             catch (e) {
                 toast_error("getSettings", e);
