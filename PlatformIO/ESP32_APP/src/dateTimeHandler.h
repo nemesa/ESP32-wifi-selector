@@ -15,10 +15,10 @@ void configTimeHandler()
 
 char timeBuffer[25];
 
-char *getTimeServerISOTimeString()
+char *getTimeServerISOTimeString(uint32_t timeout_ms)
 {
   struct tm timeinfo;
-  if (!getLocalTime(&timeinfo))
+  if (!getLocalTime(&timeinfo, timeout_ms))
   {
     Serial.println("Failed to obtain time");
     timeBuffer[0] = '1';

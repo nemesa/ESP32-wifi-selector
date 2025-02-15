@@ -4,6 +4,7 @@
 #include "wifiConnectionManager.h"
 #include "wifiScanToJson.h"
 #include "serverSetup.h"
+#include "ledMatrix.h"
 
 #include "sampleDataRequest.h"
 
@@ -32,8 +33,9 @@ void setup()
   configTimeHandler();
 
   Serial.println("ISO time:");
-  Serial.println(getTimeServerISOTimeString());
+  Serial.println(getTimeServerISOTimeString(10000));
 
+  led_matrix_setup();
   getSampleData();
 }
 
