@@ -6,6 +6,7 @@
 
 boolean WIFI_CONNECTION_MANAGER_TRY_CONNECT = false;
 boolean WIFI_CONNECTION_TRY_RECONNECT = false;
+boolean WIFI_CONNECTION_HAS_INTERNET_ACCESS = false;
 
 IPAddress local_ip(192, 168, 4, 1);
 IPAddress gateway(192, 168, 4, 1);
@@ -42,6 +43,7 @@ void wifiManagerCreateAP()
 
 void wifiManagerConnectWifiBasedOnConfig()
 {
+    WIFI_CONNECTION_HAS_INTERNET_ACCESS = false;
     Serial.println("wifiManagerConnectWifiBasedOnConfig");
     settingsJson = readSettingsJson();
     if (settingsJson["connect_to_ssid"])
@@ -83,12 +85,13 @@ void wifiManagerConnectWifiBasedOnConfig()
             delay(1000);
             Serial.println(++i);
         }
-        if(WiFi.status() == WL_CONNECTED)
+        if (WiFi.status() == WL_CONNECTED)
         {
             Serial.println("Connected to the WiFi network");
             Serial.print("IP address: ");
             Serial.println(WiFi.localIP());
             WIFI_CONNECTION_TRY_RECONNECT = true;
+            WIFI_CONNECTION_HAS_INTERNET_ACCESS = true;
         }
         else
         {
@@ -106,6 +109,7 @@ void wifiManagerDisconnectWifi()
     Serial.println("Disconnecting from WiFi");
     WIFI_CONNECTION_TRY_RECONNECT = false;
     WIFI_CONNECTION_MANAGER_TRY_CONNECT = false;
+    WIFI_CONNECTION_HAS_INTERNET_ACCESS = false;
     WiFi.disconnect();
 }
 
@@ -117,11 +121,13 @@ JsonDocument wifiManagerConnectionStatus()
     {
         doc["ip"] = WiFi.localIP().toString();
         doc["rssi"] = WiFi.RSSI();
+        WIFI_CONNECTION_HAS_INTERNET_ACCESS = true;
     }
     else
     {
         doc["ip"] = (char *)NULL;
         doc["rssi"] = (char *)NULL;
+        WIFI_CONNECTION_HAS_INTERNET_ACCESS = false;
     }
 
     return doc;
